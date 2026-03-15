@@ -22,7 +22,17 @@ export async function POST(req: NextRequest) {
       status: "pending",
       customer,
       shippingAddress,
-      items,
+      items: items.map((item: any, index: number) => ({
+        _key: `item-${index}-${Date.now()}`,
+        productId: item.productId,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image || "",
+        ...(item.productId && {
+          product: { _type: "reference", _ref: item.productId, _weak: true }
+        }),
+      })),
       totalAmount,
       notes: notes || "",
       createdAt: new Date().toISOString(),

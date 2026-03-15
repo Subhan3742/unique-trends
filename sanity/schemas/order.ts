@@ -1,4 +1,5 @@
 import { defineType, defineField } from "sanity";
+import { ImageIcon } from "@sanity/icons";
 
 export default defineType({
   name: "order",
@@ -41,12 +42,34 @@ export default defineType({
       of: [
         {
           type: "object",
+          preview: {
+            select: {
+              title: "title",
+              quantity: "quantity",
+              price: "price",
+              media: "product.images.0.asset",
+            },
+            prepare({ title, quantity, price, media }: any) {
+              return {
+                title: title || "Unknown Product",
+                subtitle: `Qty: ${quantity || 1}  |  PKR ${(price || 0).toLocaleString()}`,
+                media: media || ImageIcon,
+              };
+            },
+          },
           fields: [
             { name: "productId", title: "Product ID", type: "string" },
-            { name: "title", title: "Product Title", type: "string" },
-            { name: "price", title: "Price", type: "number" },
+            { name: "title", title: "Product Name", type: "string" },
+            { name: "price", title: "Price (PKR)", type: "number" },
             { name: "quantity", title: "Quantity", type: "number" },
-            { name: "image", title: "Image URL", type: "string" },
+            { name: "image", title: "Image URL", type: "url" },
+            {
+              name: "product",
+              title: "Product Reference",
+              type: "reference",
+              to: [{ type: "product" }],
+              weak: true,
+            },
           ],
         },
       ],
@@ -58,7 +81,8 @@ export default defineType({
   preview: {
     select: { title: "orderNumber", subtitle: "customer.name", status: "status" },
     prepare({ title, subtitle, status }: any) {
-      return { title: `Order #${title}`, subtitle: `${subtitle} — ${status}` };
+      const emoji = status === "pending" ? "🕐" : status === "confirmed" ? "✅" : status === "shipped" ? "🚚" : status === "delivered" ? "📦" : "❌";
+      return { title: `${emoji} Order #${title}`, subtitle: `${subtitle} — ${status}` };
     },
   },
 });
